@@ -62,7 +62,8 @@ class Node:
                 uct = (child.num_wins/child.num_visits) + C*(math.sqrt(math.log(self.num_visits) / child.num_visits))
             else:
                 uct = float('inf')
-            if uct >= best_uct:
+
+            if uct > best_uct:
                 best_uct = uct
                 best_child = child
 
@@ -101,15 +102,20 @@ class Node:
         ]
         for combo in win_combinations:
             if sim_board[combo[0]] == sim_board[combo[1]] == sim_board[combo[2]] != ' ':
-                return True
-        return False
+                return sim_board[combo[0]]  # Return the winner ('X' or 'O')
+        
+        if ' ' not in sim_board:  # If no empty spots, it's a tie
+            return 'Tie'
+        
+        return None  # Game is still ongoing
+
     
-    def print_board(self, board):
-        print(f"{board[0]} | {board[1]} | {board[2]}")
+    def print_board(self):
+        print(f"{self.board[0]} | {self.board[1]} | {self.board[2]}")
         print("--+---+--")
-        print(f"{board[3]} | {board[4]} | {board[5]}")
+        print(f"{self.board[3]} | {self.board[4]} | {self.board[5]}")
         print("--+---+--")
-        print(f"{board[6]} | {board[7]} | {board[8]}")
+        print(f"{self.board[6]} | {self.board[7]} | {self.board[8]}")
     
     def rollout(self):
         sim_player = self.player # 0 is the AI's turn
@@ -117,20 +123,20 @@ class Node:
         while True:
             valid_moves = self.get_valid_moves(sim_board)
 
-            if (len(valid_moves) == 0):
-                return 0 # sim ended in a tie 
+            winner = self.check_winner(sim_board)
+
+            if (winner != None):
+                if (winner == 'O'):
+                    return 1 # AI wins 
+                elif (winner == 'X'):
+                    return -1
+                elif (winner == 'Tie'):
+                    return 0       
 
             # move randomly
             move = random.choice(valid_moves)
 
-            sim_board[move] = sim_player # the AI is always X
-
-            if (self.check_winner(sim_board)):
-                if (sim_player == 'O'): # need to check sim player against the OG start player (always 'O' right now)
-                    # AI wins!
-                    return 1
-                else:
-                    return -1
+            sim_board[move] = sim_player 
             
             # switch turns in the simulation
             if sim_player == 'X':
@@ -146,9 +152,27 @@ class Node:
             curr.num_visits += 1
             curr.num_wins += value
             curr = curr.parent
-            print('propogating')
+
+    def print_node(self):
+        print('num_visits: ', self.num_visits)
+        print('num_wins: ', self.num_wins)
+        print('turn: ', self.player)
+        self.print_board()
+        print('num children: ', len(self.children))
+        print('parent board: ')
+        if (self.parent != None):
+            self.parent.print_board()
 
 class MCTS_AI(BaseAI):
+    '''
+    Changes made:
+        curr_node = root inside the iteration loop, reset every iteration
+        change player turns in expand children, each layer of the tree represents a different player's turn
+        slight change to selecting best child (change uct >= best_uct to uct > best_uct)
+        check_winner now returns the winner of the game, should be better for checking who wins during roll out
+        in rollout(), check winner before making a move
+        chat gpt recommended using the child with the highest number of visits to select next move
+    '''
     def __init__(self, player_symbol, num_sims, C):
         super().__init__(player_symbol)
         self.num_sims = num_sims
@@ -165,10 +189,9 @@ class MCTS_AI(BaseAI):
     def choose_move(self, board):
         root = Node(board,None,self.player_symbol,None)
         iterations = 0
-        curr_node = root
 
         while (iterations < self.num_sims):
-            print(iterations)
+            curr_node = root
 
             #explore - find leaf node using best child policy
             while (len(curr_node.children) > 0):
@@ -186,13 +209,16 @@ class MCTS_AI(BaseAI):
             #backpropogate
             curr_node.backpropogate(val)
             iterations += 1
-        
 
-        self.print_tree(root)
-
-        best_child = root.get_best_child(self.C)
+        most_visits = 0
+        next_move = None
+        for child in root.children:
+            v = child.num_visits
+            if v > most_visits:
+                most_visits = v
+                next_move = child
         
-        return best_child.move
+        return next_move.move
 
 
 # class MCTS_AI(BaseAI):
