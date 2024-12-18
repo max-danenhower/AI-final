@@ -79,12 +79,18 @@ class Node:
     def add_child(self, child):
         self.children.append(child)
 
+    # each layer of the tree is a different player's turn, maybe here where we go one layer deeper, witch turns
     def expand_children(self):
         moves = self.get_valid_moves(self.board)
         for m in moves:
             child_board = self.board[:]
             child_board[m] = self.player
-            child = Node(child_board, self, self.player, m)
+            child_player = None
+            if self.player == 'X':
+                child_player = 'O'
+            else:
+                child_player = 'X'
+            child = Node(child_board, self, child_player, m) # right here, self.player flips
             self.add_child(child)
 
     def check_winner(self, sim_board):
@@ -120,7 +126,7 @@ class Node:
             sim_board[move] = sim_player # the AI is always X
 
             if (self.check_winner(sim_board)):
-                if (sim_player == self.player):
+                if (sim_player == 'O'): # need to check sim player against the OG start player (always 'O' right now)
                     # AI wins!
                     return 1
                 else:
@@ -140,6 +146,7 @@ class Node:
             curr.num_visits += 1
             curr.num_wins += value
             curr = curr.parent
+            print('propogating')
 
 class MCTS_AI(BaseAI):
     def __init__(self, player_symbol, num_sims, C):
@@ -147,12 +154,21 @@ class MCTS_AI(BaseAI):
         self.num_sims = num_sims
         self.C = C
 
+    def print_tree(self, node, depth=0):
+        # Print the current node's information with indentation for depth
+        print("  " * depth + f"Node (Visits: {node.num_visits})")
+        
+        # Recursively print all child nodes
+        for child in node.children:
+            self.print_tree(child, depth + 1)
+
     def choose_move(self, board):
         root = Node(board,None,self.player_symbol,None)
         iterations = 0
         curr_node = root
 
         while (iterations < self.num_sims):
+            print(iterations)
 
             #explore - find leaf node using best child policy
             while (len(curr_node.children) > 0):
@@ -172,8 +188,10 @@ class MCTS_AI(BaseAI):
             iterations += 1
         
 
+        self.print_tree(root)
+
         best_child = root.get_best_child(self.C)
-        print(best_child)
+        
         return best_child.move
 
 

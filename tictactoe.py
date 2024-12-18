@@ -14,11 +14,11 @@ def choose_ai_algorithm():
         return GreedyAI
     elif choice == '3':
         print("You chose MCTS AI.")
-        exploration_weight = float(
+        C = float(
             input("Enter the exploration weight for MCTS (e.g., 1.414): "))
-        time_limit = float(
-            input("Enter the time limit for MCTS iterations (eg 100): "))
-        return lambda symbol: MCTS_AI(symbol, exploration_weight, time_limit)
+        num_sims = float(
+            input("Enter the limit for MCTS iterations (eg 100): "))
+        return lambda symbol: MCTS_AI(symbol, num_sims, C)
     else:
         print("Invalid choice. Defaulting to Random AI.")
         return RandomAI
