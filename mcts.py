@@ -2,20 +2,21 @@ import random, math, time
 from tictactoe import TicTacToe
 
 class Node:
-    def __init__(self, board, parent, player):
+    def __init__(self, board, parent, player, move):
         self.player = player
         self.board = board
         self.parent = parent
         self.children = []
         self.num_visits = 0
         self.num_wins = 0
+        self.move = move
 
-    def get_best_child(self):
+    def get_best_child(self, C):
         # get best child by implmenting UCT policy
         best_uct = float('-inf')
         best_child = None
         for child in self.children:
-            uct = (child.num_wins/child.num_visits) + 1.2(math.sqrt(math.log(self.num_visits) / child.num_visits))
+            uct = (child.num_wins/child.num_visits) + C*(math.sqrt(math.log(self.num_visits) / child.num_visits))
             if uct > best_uct:
                 best_uct = uct
                 best_child = None
@@ -32,6 +33,14 @@ class Node:
     
     def add_child(self, child):
         self.children.append(child)
+
+    def expand_children(self):
+        moves = self.get_valid_moves(self.board)
+        for m in moves:
+            child_board = self.board[:]
+            child_board[m] = self.player
+            child = Node(child_board, self, self.player, m)
+            self.add_child(child)
 
     def check_winner(self, sim_board):
         win_combinations = [
@@ -89,6 +98,35 @@ class Node:
             curr.num_visits += 1
             curr.num_wins += value
             curr = curr.parent
+
+class Run_MCTS:
+    def __init__(self, num_sims, C):
+        self.num_sims = num_sims
+        self.C = C
+
+    def choose_move(self, root):
+        iterations = 0
+
+        while (iterations < self.num_sims):
+
+            #explore - find leaf node using best child policy
+            curr_node = root
+            while (len(curr_node.children) > 0):
+                curr_node = curr_node.get_best_child(self.C)
+
+            #expand
+            if curr_node.num_visits > 0:
+                curr_node.expand_children()
+                curr_node = curr_node.children[0]
+
+            #simulate
+            val = curr_node.rollout()
+
+            #backpropogate
+            curr_node.backpropogate(val)
+        
+        return root.get_best_child(self.C)
+
 
 
 if __name__ == "__main__":

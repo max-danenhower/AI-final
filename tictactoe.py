@@ -1,6 +1,5 @@
 from ai_algorithms import RandomAI, GreedyAI, BaseAI, MCTS_AI
 
-
 def choose_ai_algorithm():
     print("Choose the AI algorithm you want to play against:")
     print("1. Random AI")
@@ -18,7 +17,7 @@ def choose_ai_algorithm():
         exploration_weight = float(
             input("Enter the exploration weight for MCTS (e.g., 1.414): "))
         time_limit = float(
-            input("Enter the time limit for MCTS in seconds (e.g., 1.0): "))
+            input("Enter the time limit for MCTS iterations (eg 100): "))
         return lambda symbol: MCTS_AI(symbol, exploration_weight, time_limit)
     else:
         print("Invalid choice. Defaulting to Random AI.")
