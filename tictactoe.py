@@ -5,7 +5,8 @@ def choose_ai_algorithm():
     print("1. Random AI")
     print("2. Greedy AI")
     print("3. Monte Carlo Tree Search")
-    choice = input("Enter the number of your choice (1, 2 or 3): ")
+    print("4. Human")
+    choice = input("Enter the number of your choice (1, 2, 3, or 4): ")
     if choice == '1':
         print("You chose Random AI.")
         return RandomAI
@@ -19,6 +20,9 @@ def choose_ai_algorithm():
         num_sims = float(
             input("Enter the limit for MCTS iterations (eg 100): "))
         return lambda symbol: MCTS_AI(symbol, num_sims, C)
+    elif choice == '4':
+        print("You chose Human")
+        return "human"
     else:
         print("Invalid choice. Defaulting to Random AI.")
         return RandomAI
@@ -98,10 +102,12 @@ class TicTacToe:
             self.print_board()
 
 if __name__ == "__main__":
-    ai_class = choose_ai_algorithm()
+    ai1 = choose_ai_algorithm()
+    ai2 = choose_ai_algorithm()
     game = TicTacToe(
-        player1_type="human",
-        player2_type=ai_class if ai_class != MCTS_AI else lambda symbol: ai_class(
+        player1_type=ai1 if ai1 != MCTS_AI else lambda symbol: ai1(
+            symbol),
+        player2_type=ai2 if ai2 != MCTS_AI else lambda symbol: ai2(
             symbol)
     )
     game.start_game()
