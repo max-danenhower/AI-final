@@ -1,7 +1,30 @@
+from ai_algorithms import RandomAI, GreedyAI, BaseAI
+
+
+def choose_ai_algorithm():
+    print("Choose the AI algorithm you want to play against:")
+    print("1. Random AI")
+    print("2. Greedy AI")
+    choice = input("Enter the number of your choice (1 or 2): ")
+    if choice == '1':
+        print("You chose Random AI.")
+        return RandomAI
+    elif choice == '2':
+        print("You chose Greedy AI.")
+        return GreedyAI
+    else:
+        print("Invalid choice. Defaulting to Random AI.")
+        return RandomAI
+
+
 class TicTacToe:
-    def __init__(self):
-        self.board = [' ' for _ in range(9)]  # A 3x3 board
+    def __init__(self, player1_type, player2_type):
+        self.board = [' ' for _ in range(9)]
         self.current_player = 'X'
+        self.players = {
+            'X': player1_type('X'),
+            'O': player2_type('O')
+        }
 
     def print_board(self):
         print(f"{self.board[0]} | {self.board[1]} | {self.board[2]}")
@@ -39,23 +62,37 @@ class TicTacToe:
                 return True
         return False
 
+
     def start_game(self):
         print("Welcome to Tic Tac Toe!")
         self.print_board()
         while True:
-            try:
-                position = int(input(f"Player {self.current_player}, enter a position (0-8): "))
-                if position < 0 or position > 8:
-                    print("Invalid position. Please choose a number between 0 and 8.")
-                    continue
-                if self.make_move(position):
-                    break
-                self.print_board()
-            except ValueError:
-                print("Invalid input. Please enter a number between 0 and 8.")
+            player = self.players[self.current_player]
+            if isinstance(player, BaseAI):  # AI Player
+                print(f"AI Player {self.current_player} is thinking...")
+                move = player.choose_move(self.board)
+                print(f"AI chooses position {move}")
+            else:  # Human Player
+                while True:  # Keep asking until valid input
+                    try:
+                        move = int(
+                            input(f"Player {self.current_player}, enter a position (0-8): "))
+                        if move < 0 or move > 8:  # Check if move is within bounds
+                            print(
+                                "Invalid position. Please choose a number between 0 and 8.")
+                            continue
+                        if self.board[move] != ' ':  # Check if position is already taken
+                            print("This position is already taken. Try again.")
+                            continue
+                        break  # Valid input, exit the loop
+                    except ValueError:  # Handle non-integer inputs
+                        print("Invalid input. Please enter a valid number between 0 and 8.")
 
+            if self.make_move(move):
+                break
+            self.print_board()
 
 if __name__ == "__main__":
-    # To play the game
-    game = TicTacToe()
+    ai_class = choose_ai_algorithm()
+    game = TicTacToe(player1_type=lambda x: "human", player2_type=ai_class)
     game.start_game()
