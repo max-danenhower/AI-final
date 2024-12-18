@@ -31,7 +31,7 @@ class TicTacToe:
         self.players = {
             'X': player1_type if player1_type == "human" else player1_type('X'),
             'O': player2_type('O') if callable(player2_type) else player2_type
-        }
+    }
 
     def print_board(self):
         print(f"{self.board[0]} | {self.board[1]} | {self.board[2]}")
@@ -68,7 +68,6 @@ class TicTacToe:
             if self.board[combo[0]] == self.board[combo[1]] == self.board[combo[2]] != ' ':
                 return True
         return False
-
 
     def start_game(self):
         print("Welcome to Tic Tac Toe!")
