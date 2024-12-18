@@ -85,7 +85,6 @@ class Node:
         for m in moves:
             child_board = self.board[:]
             child_board[m] = self.player
-            child_player = None
             if self.player == 'X':
                 child_player = 'O'
             else:
@@ -124,14 +123,6 @@ class Node:
 
             winner = self.check_winner(sim_board)
 
-            # if winner != None:
-            #     if winner == 'O':
-            #         return 1
-            #     elif winner == 'X':
-            #         return -1
-            #     else:
-            #         return 0
-
             if (winner != None):
                 return winner
 
@@ -146,33 +137,29 @@ class Node:
             else:
                 sim_player =  'X'
 
-    # def backpropogate(self, val):      
-    #     self.num_wins += val
-    #     self.num_visits += 1
-    #     if (self.parent != None):
-    #         self.parent.backpropogate(val)
-
-    def backpropogate(self, winner):      
+    def backpropogate(self, winner):     
         if winner != 'Tie':
             if self.player == winner:
-                self.num_wins += 1
-            else:
                 self.num_wins -= 1
+            else:
+                self.num_wins += 1
 
         self.num_visits += 1
         if (self.parent != None):
             self.parent.backpropogate(winner)
 
     def print_node(self):
-        print('num_visits: ', self.num_visits)
-        print('num_wins: ', self.num_wins)
-        print('turn: ', self.player)
-        self.print_board()
-        print('num children: ', len(self.children))
-        print('parent board: ')
         if (self.parent != None):
             print('parent board:')
             self.parent.print_board()
+        else:
+            print('root node')
+        print('num_visits: ', self.num_visits)
+        print('num_wins: ', self.num_wins)
+        print('player: ', self.player)
+        print('node board:')
+        self.print_board()
+        print('num children: ', len(self.children))
 
 class MCTS_AI(BaseAI):
     def __init__(self, player_symbol, num_sims, C):
@@ -182,7 +169,7 @@ class MCTS_AI(BaseAI):
 
     def print_tree(self, node, depth=0):
         # Print the current node's information with indentation for depth
-        print("  " * depth + f"Node (Visits: {node.num_visits})")
+        print("  " * depth*2 + f"Node {node.player} (Visits: {node.num_visits} Wins: {node.num_wins})")
         
         # Recursively print all child nodes
         for child in node.children:
@@ -196,11 +183,7 @@ class MCTS_AI(BaseAI):
             curr_node = root
 
             #explore - find leaf node using best child policy
-            # print("here")
-
             while (len(curr_node.children) > 0):
-                # print("child")
-
                 curr_node = curr_node.get_best_child(self.C)
 
             #expand
@@ -210,18 +193,26 @@ class MCTS_AI(BaseAI):
                     curr_node = curr_node.children[0]
 
             #simulate
-            val = curr_node.rollout()
+            winner = curr_node.rollout()
 
             #backpropogate
-            curr_node.backpropogate(val)
+            curr_node.backpropogate(winner)
             iterations += 1
 
+        # select child with highest number of visits
         most_visits = 0
+        i = 0
         next_move = None
         for child in root.children:
+            print('-----------')
+            print('child ', i)
+            print('num visits: ', child.num_visits)
+            print('num wins: ', child.num_wins)
+            print('child move: ', child.move)
             v = child.num_visits
             if v > most_visits:
                 most_visits = v
                 next_move = child
+            i+=1
         
         return next_move.move
