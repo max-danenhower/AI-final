@@ -1,29 +1,36 @@
-from ai_algorithms import RandomAI, GreedyAI, BaseAI
+from ai_algorithms import RandomAI, GreedyAI, BaseAI, MCTS_AI
 
 
 def choose_ai_algorithm():
     print("Choose the AI algorithm you want to play against:")
     print("1. Random AI")
     print("2. Greedy AI")
-    choice = input("Enter the number of your choice (1 or 2): ")
+    print("3. Monte Carlo Tree Search")
+    choice = input("Enter the number of your choice (1, 2 or 3): ")
     if choice == '1':
         print("You chose Random AI.")
         return RandomAI
     elif choice == '2':
         print("You chose Greedy AI.")
         return GreedyAI
+    elif choice == '3':
+        print("You chose MCTS AI.")
+        exploration_weight = float(
+            input("Enter the exploration weight for MCTS (e.g., 1.414): "))
+        time_limit = float(
+            input("Enter the time limit for MCTS in seconds (e.g., 1.0): "))
+        return lambda symbol: MCTS_AI(symbol, exploration_weight, time_limit)
     else:
         print("Invalid choice. Defaulting to Random AI.")
         return RandomAI
-
 
 class TicTacToe:
     def __init__(self, player1_type, player2_type):
         self.board = [' ' for _ in range(9)]
         self.current_player = 'X'
         self.players = {
-            'X': player1_type('X'),
-            'O': player2_type('O')
+            'X': player1_type if player1_type == "human" else player1_type('X'),
+            'O': player2_type('O') if callable(player2_type) else player2_type
         }
 
     def print_board(self):
@@ -94,5 +101,9 @@ class TicTacToe:
 
 if __name__ == "__main__":
     ai_class = choose_ai_algorithm()
-    game = TicTacToe(player1_type=lambda x: "human", player2_type=ai_class)
+    game = TicTacToe(
+        player1_type="human",
+        player2_type=ai_class if ai_class != MCTS_AI else lambda symbol: ai_class(
+            symbol)
+    )
     game.start_game()
