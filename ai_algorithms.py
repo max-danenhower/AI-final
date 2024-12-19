@@ -166,7 +166,7 @@ class MCTS_Node:
             else:
                 child_player = 'X'
 
-            child = Node(child_board, self, child_player, m) 
+            child = MCTS_Node(child_board, self, child_player, m) 
             self.add_child(child)
 
     def check_winner(self, sim_board):
