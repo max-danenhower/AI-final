@@ -1,6 +1,9 @@
 from ai_algorithms import RandomAI, GreedyAI, BaseAI, MCTS_AI
 
 def choose_ai_algorithm():
+    '''
+    Allows user to choose between for agents, including a human agent
+    '''
     print("Choose the AI algorithm you want to play against:")
     print("1. Random AI")
     print("2. Greedy AI")
@@ -28,6 +31,9 @@ def choose_ai_algorithm():
         return RandomAI
 
 class TicTacToe:
+    '''
+    TicTacToe game environment. Game environment takes two player agents. 
+    '''
     def __init__(self, player1_type, player2_type):
         self.board = [' ' for _ in range(9)]
         self.current_player = 'X'
@@ -37,6 +43,9 @@ class TicTacToe:
     }
 
     def print_board(self):
+        '''
+        Visualize the game state
+        '''
         print(f"{self.board[0]} | {self.board[1]} | {self.board[2]}")
         print("--+---+--")
         print(f"{self.board[3]} | {self.board[4]} | {self.board[5]}")
@@ -44,6 +53,9 @@ class TicTacToe:
         print(f"{self.board[6]} | {self.board[7]} | {self.board[8]}")
 
     def make_move(self, position):
+        '''
+        Update the game state given a position
+        '''
         if self.board[position] == ' ':
             self.board[position] = self.current_player
             if self.check_winner():
@@ -62,6 +74,9 @@ class TicTacToe:
             return False
 
     def check_winner(self):
+        '''
+        Check if there is a winner
+        '''
         win_combinations = [
             (0, 1, 2), (3, 4, 5), (6, 7, 8),  # Horizontal
             (0, 3, 6), (1, 4, 7), (2, 5, 8),  # Vertical
@@ -73,6 +88,9 @@ class TicTacToe:
         return False
 
     def start_game(self):
+        '''
+        Facilitates the game by passing off moves between the two players 
+        '''
         print("Welcome to Tic Tac Toe!")
         self.print_board()
         while True:
@@ -87,8 +105,7 @@ class TicTacToe:
                         move = int(
                             input(f"Player {self.current_player}, enter a position (0-8): "))
                         if move < 0 or move > 8:  # Check if move is within bounds
-                            print(
-                                "Invalid position. Please choose a number between 0 and 8.")
+                            print("Invalid position. Please choose a number between 0 and 8.")
                             continue
                         if self.board[move] != ' ':  # Check if position is already taken
                             print("This position is already taken. Try again.")
@@ -104,10 +121,5 @@ class TicTacToe:
 if __name__ == "__main__":
     ai1 = choose_ai_algorithm()
     ai2 = choose_ai_algorithm()
-    game = TicTacToe(
-        player1_type=ai1 if ai1 != MCTS_AI else lambda symbol: ai1(
-            symbol),
-        player2_type=ai2 if ai2 != MCTS_AI else lambda symbol: ai2(
-            symbol)
-    )
+    game = TicTacToe(ai1, ai2)
     game.start_game()
